@@ -154,7 +154,8 @@ class AttendanceController extends Controller
                     ->whereDate('attendance_date',$request->attendance_date)
                     ->orderBy('id', 'DESC')
                     ->get();
-        if ($attendances) {
+                // dd(gettype($attendances));
+        if (count($attendances)>0) {
             return response()->json([
                             'success'=>true,
                             'data'=>$attendances
@@ -162,7 +163,7 @@ class AttendanceController extends Controller
         }else{
             return response()->json([
                             'success'=>false,
-                            'message' => 'Failed!'
+                            'message' =>$request->user_id.' s attendance not availble for '.$request->attendance_date.'',
                         ],500);
         }
        
