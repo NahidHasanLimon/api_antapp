@@ -34,7 +34,7 @@ class NewAttendanceController extends Controller
   {
 
 $attendance_data=Attendance::where('user_id',$user_id)->wheredate('attendance_date',$date)->where('is_approved_s',1)->select('attendance_date','check_in','check_out','status')->get();
-
+    
     foreach($attendance_data as $attendance) {
       $check_in = new DateTime($attendance->check_in);
       $check_out = new DateTime($attendance->check_out);
@@ -53,10 +53,11 @@ $attendance_data=Attendance::where('user_id',$user_id)->wheredate('attendance_da
   $checkOut = $attendance_data[0]->check_out;
   $status =$attendance_data[0]->status;
 
-  $d1 = new  DateTime($checkIn);
-  $d2 = new DateTime($checkOut);
+  // $d1 = new  DateTime($checkIn);
+  // $d2 = new DateTime($checkOut); 
   // $Diff = $d1->diff($d2)->h . 'h: ' . $d1->diff($d2)->i. 'm: ' . $d1->diff($d2)->s. 's:';
   $TotalDurationSum = self::CalculateTime($timeArr);
+
 
        return response()->json([
 
@@ -69,21 +70,30 @@ $attendance_data=Attendance::where('user_id',$user_id)->wheredate('attendance_da
                         ],200);
   }
 
-  public function GetAttendanceMonthly($user_id,$check_in,$checkOut)
+  public function GetAttendanceMonthly($user_id,$start_date,$end_date)
   {
-    $attendance_data=Attendance::where('user_id',$user_id)->where('check_in',$check_in)->where('check_out',$checkOut)->where('is_approved_s',1)->select('attendance_date','status')->get();
+   
+     $attendance_data=Attendance::where('user_id',$user_id)->whereBetween('attendance_date',[$start_date,$end_date])->where('is_approved_s',1)->select('attendance_date','check_in','check_out','status')->get();
+   
+     foreach($attendance_data as $attendance){
+           $check_in= new DateTime($attendance->check_in);
+           $check_out= new DateTime($attendance->check_out);
+           $timeDiff = $check_in->diff($check_out);
+           $AttandanceArr = [
+            'attendance_date'=>$attendance->attendance_date,
+            'inTime' => $attendance->check_in,
+            'outTime' => $attendance->check_out,
+            'status' =>$attendance->status,
+            'duration' => $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's:' ,
+          ];
+    
+          $timeArr[] = $timeDiff->h . ':' . $timeDiff->i . ':' . $timeDiff->s;
+          $attenDanceData[] = $AttandanceArr;
+     }
+    return response()->json([
 
-    $checkIn = $attendance_data[0]->check_in;
-    $checkOut = $attendance_data[0]->check_out;
-
-    $d1 = new  DateTime($checkIn);
-    $d2 = new DateTime($checkOut);
-    $Diff = $d1->diff($d2)->h . 'h: ' . $d1->diff($d2)->i. 'm: ' . $d1->diff($d2)->s. 's:';
-
-
-    return response()->json(['success'=>true,
-    'attendance_date'=>$attendance_data,
-    'duration'=>$Diff,
-    ],200);
+      'success'=>true,
+      'attendance_data'=>$attenDanceData,
+  ],200);
   }
 }
