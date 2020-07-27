@@ -26,4 +26,5 @@ Route::group(['middleware' => 'jwt.auth'], function () {
     Route::get('/attendance_daily/{user_id}/{date}','api\NewAttendanceController@GetAttendancedaily');
 });
 Route::post('login', 'api\LoginController@login');
+
  // Route::get('checkin', 'api\AttendanceController@check_in');
