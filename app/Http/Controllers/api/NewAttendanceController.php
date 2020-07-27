@@ -89,7 +89,7 @@ class NewAttendanceController extends Controller
            'inTime' => $attendance->check_in,
            'outTime' => $attendance->check_out,
            'status' =>$attendance->status,
-           'duration' => $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's:' ,
+           'duration' => $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's' ,
          ];
    
          $timeArr[] = $timeDiff->h . ':' . $timeDiff->i . ':' . $timeDiff->s;
@@ -106,5 +106,29 @@ class NewAttendanceController extends Controller
 }
     
   
+  }
+
+
+  public function Gethomepage($user_id)
+  {
+     $total_checkin=Attendance::where('user_id',$user_id)
+     ->whereDate('attendance_date',today())->count('check_in');
+
+     
+     $attendance_report = Attendance::where('user_id',$user_id)
+                    ->whereDate('attendance_date',today())
+                    ->where('check_out', NULL)->get();
+
+
+    if (count($attendance_report) > 0) {
+      $check_in= new DateTime($attendance_report[0]->check_in);
+      $current_time= new DateTime(date('H:i:s'));
+      $timeDiff = $check_in->diff($current_time);
+                      
+      $session_duration =  $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's';
+      return response()->json(['sucess'=>'true','total_checkin_per_day'=>$total_checkin,'last_session_duration'=>$session_duration],200);
+    } else {
+      return response()->json(['sucess'=>'false','total_checkin_per_day'=>Null,'last_session_duration'=>Null],400);
+    }
   }
 }
