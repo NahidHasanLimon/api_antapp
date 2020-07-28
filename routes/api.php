@@ -22,10 +22,14 @@ Route::group(['middleware' => 'jwt.auth'], function () {
     Route::get('checkout', 'api\AttendanceController@check_out');
     Route::get('attendancelog/', 'api\AttendanceController@users_log_of_a_day');
     Route::get('checklaststatus', 'api\AttendanceController@check_last_status');
-    Route::get('/attendance_monthly/{user_id}/{start_date}/{end_date}','api\NewAttendanceController@GetAttendanceMonthly');
-    Route::get('/attendance_daily/{user_id}/{date}','api\NewAttendanceController@GetAttendancedaily');
+    Route::get('/attendanceMonthly/{user_id}/{start_date}/{end_date}','api\NewAttendanceController@GetAttendanceMonthly');
+    Route::get('/attendanceDaily/{user_id}/{date}','api\NewAttendanceController@GetAttendancedaily');
 
     Route::get('/homepage/{user_id}','api\NewAttendanceController@Gethomepage');
+
+ 
+  
+
 
 });
 Route::post('login', 'api\LoginController@login');

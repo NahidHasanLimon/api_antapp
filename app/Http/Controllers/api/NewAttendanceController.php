@@ -33,7 +33,7 @@ class NewAttendanceController extends Controller
   public function GetAttendancedaily($user_id,$date)
   {
     try{
-      $attendance_data=Attendance::where('user_id',$user_id)->wheredate('attendance_date',$date)->where('is_approved_s',1)->select('attendance_date','check_in','check_out','status')->get();
+      $attendance_data=AttendanceLog::where('user_id',$user_id)->wheredate('attendance_date',$date)->select('attendance_date','check_in','check_out','status')->get();
     
       foreach($attendance_data as $attendance) {
         $check_in = new DateTime($attendance->check_in);
@@ -78,7 +78,7 @@ class NewAttendanceController extends Controller
   public function GetAttendanceMonthly($user_id,$start_date,$end_date)
   {
    try{
-    $attendance_data=Attendance::where('user_id',$user_id)->whereBetween('attendance_date',[$start_date,$end_date])->where('is_approved_s',1)->select('attendance_date','check_in','check_out','status')->get();
+    $attendance_data=AttendanceLog::where('user_id',$user_id)->whereBetween('attendance_date',[$start_date,$end_date])->select('attendance_date','check_in','check_out','status')->get();
    
     foreach($attendance_data as $attendance){
           $check_in= new DateTime($attendance->check_in);
@@ -111,11 +111,10 @@ class NewAttendanceController extends Controller
 
   public function Gethomepage($user_id)
   {
-     $total_checkin=Attendance::where('user_id',$user_id)
+     $total_checkin=AttendanceLog::where('user_id',$user_id)
      ->whereDate('attendance_date',today())->count('check_in');
 
-     
-     $attendance_report = Attendance::where('user_id',$user_id)
+     $attendance_report = AttendanceLog::where('user_id',$user_id)
                     ->whereDate('attendance_date',today())
                     ->where('check_out', NULL)->get();
 
@@ -130,5 +129,12 @@ class NewAttendanceController extends Controller
     } else {
       return response()->json(['sucess'=>'false','total_checkin_per_day'=>Null,'last_session_duration'=>Null],400);
     }
+  }
+
+  public function GetCheckButton($user_id,$check_status)
+  {
+    $checkButton=Attendance::where('user_id',$user_id)->where('check_out',null)->get();
+    $check_in=$checkButton[0]->check_in;
+    return response()->json(['sucess'=>true,'check_status'=>$check_in],200);
   }
 }
