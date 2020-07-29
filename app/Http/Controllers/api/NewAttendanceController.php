@@ -11,7 +11,7 @@ use App\AttendanceLog;
 use App\Attendance;
 use Carbon\Carbon;
 use DateTime;
-
+use Input;
 class NewAttendanceController extends Controller
 {
   public static function CalculateTime($times) {
@@ -30,9 +30,10 @@ class NewAttendanceController extends Controller
         return sprintf('%02d:%02d:%02d', $hours, $minutes,$seconds);
   }
 
-  public function GetAttendancedaily($user_id,$date)
+  public function GetAttendancedaily($user_id, Request $request)
   {
     try{
+       $date=$request->date;
       $attendance_data=AttendanceLog::where('user_id',$user_id)->wheredate('attendance_date',$date)->select('attendance_date','check_in','check_out','status')->get();
     
       foreach($attendance_data as $attendance) {
@@ -75,9 +76,13 @@ class NewAttendanceController extends Controller
 
   }
 
-  public function GetAttendanceMonthly($user_id,$start_date,$end_date)
+  public function GetAttendanceMonthly($user_id,Request $request)
   {
+  //   $key=$request->start_date;
+  //  dd($key);
    try{
+     $start_date=$request->start_date;
+     $end_date=$request->end_date;
     $attendance_data=AttendanceLog::where('user_id',$user_id)->whereBetween('attendance_date',[$start_date,$end_date])->select('attendance_date','check_in','check_out','status')->get();
    
     foreach($attendance_data as $attendance){
@@ -116,16 +121,18 @@ class NewAttendanceController extends Controller
 
      $attendance_report = AttendanceLog::where('user_id',$user_id)
                     ->whereDate('attendance_date',today())
-                    ->where('check_out', NULL)->get();
+                    ->where('check_out', NULL)->select('check_in')->get();
 
+             
 
     if (count($attendance_report) > 0) {
       $check_in= new DateTime($attendance_report[0]->check_in);
-      $current_time= new DateTime(date('H:i:s'));
+      $current_time= new DateTime(strtotime('H:i:s'));
       $timeDiff = $check_in->diff($current_time);
                       
       $session_duration =  $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's';
-      return response()->json(['sucess'=>'true','total_checkin_per_day'=>$total_checkin,'last_session_duration'=>$session_duration],200);
+      $starting_time =$attendance_report[0]->check_in;
+      return response()->json(['sucess'=>'true','total_checkin_per_day'=>$total_checkin,'last_session_duration'=>$session_duration,'starting from'=>$starting_time],200);
     } else {
       return response()->json(['sucess'=>'false','total_checkin_per_day'=>Null,'last_session_duration'=>Null],400);
     }
