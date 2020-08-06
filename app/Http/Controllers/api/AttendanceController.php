@@ -82,6 +82,7 @@ class AttendanceController extends Controller
                  $attendance->user_id=$this->user->id;
                  $attendance->attendance_date=Carbon::now();
                  $attendance->check_in= Carbon::Now()->toTimeString();
+
                  $attendance->save();
                  if ($attendance) {
                      return response()->json([
@@ -122,6 +123,7 @@ class AttendanceController extends Controller
                  $attendance->user_id=$this->user->id;
                  $attendance->attendance_date=Carbon::now();
                  $attendance->check_out=Carbon::Now()->toTimeString();
+                 
                  $attendance->save();
                  if ($attendance) {
                      return response()->json([

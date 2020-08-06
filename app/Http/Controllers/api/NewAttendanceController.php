@@ -51,15 +51,13 @@ class NewAttendanceController extends Controller
       }
   
     $checkIn = $attendance_data[0]->check_in;
-    $checkOut = $attendance_data[0]->check_out;
+    $checkOut = AttendanceLog::where('user_id',$user_id)->wheredate('attendance_date',$date)->latest('check_out')->pluck('check_out')->first();
     $status =$attendance_data[0]->status;
   
     // $d1 = new  DateTime($checkIn);
     // $d2 = new DateTime($checkOut); 
     // $Diff = $d1->diff($d2)->h . 'h: ' . $d1->diff($d2)->i. 'm: ' . $d1->diff($d2)->s. 's:';
     $TotalDurationSum = self::CalculateTime($timeArr);
-  
-  
          return response()->json([
   
                               'success'=>true,
@@ -78,8 +76,7 @@ class NewAttendanceController extends Controller
 
   public function GetAttendanceMonthly($user_id,Request $request)
   {
-  //   $key=$request->start_date;
-  //  dd($key);
+
    try{
      $start_date=$request->start_date;
      $end_date=$request->end_date;
@@ -123,18 +120,19 @@ class NewAttendanceController extends Controller
                     ->whereDate('attendance_date',today())
                     ->where('check_out', NULL)->select('check_in')->get();
 
-             
+    // $starting_time= AttendanceLog::where('user_id',$user_id)
+    // ->whereDate('attendance_date',today())
+    // ->latest('check_in')->first();  
 
     if (count($attendance_report) > 0) {
       $check_in= new DateTime($attendance_report[0]->check_in);
       $current_time= new DateTime(strtotime('H:i:s'));
-      $timeDiff = $check_in->diff($current_time);
-                      
+      $timeDiff = $check_in->diff($current_time);                 
       $session_duration =  $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's';
       $starting_time =$attendance_report[0]->check_in;
       return response()->json(['sucess'=>'true','total_checkin_per_day'=>$total_checkin,'last_session_duration'=>$session_duration,'starting from'=>$starting_time],200);
     } else {
-      return response()->json(['sucess'=>'false','total_checkin_per_day'=>Null,'last_session_duration'=>Null],400);
+      return response()->json(['sucess'=>'true','total_checkin_per_day'=>$total_checkin,'last_session_duration'=>null,'starting from' =>null],400);
     }
   }
 
