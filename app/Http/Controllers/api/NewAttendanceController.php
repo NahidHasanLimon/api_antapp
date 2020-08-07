@@ -104,15 +104,15 @@ class NewAttendanceController extends Controller
 
     if (count($attendance_report) > 0) {
       $check_in= new DateTime($attendance_report[0]->check_in);
-      $current_time= new DateTime(strtotime('H:i:s'));
+      $current_time= new DateTime(strtotime('H:i:s '));
       $timeDiff = $check_in->diff($current_time);                 
       $session_duration =  $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's';
-      $starting_time =$attendance_report[0]->check_in;
+      $starting_time = (new Datetime($attendance_report[0]->check_in))->format('h:i:s a');
       
       return response()->json(['success'=>'true',
       'total_checkin_per_day'=>$total_checkin,
       'last_session_duration'=>$session_duration,
-      'starting from'=>$starting_time],200);
+      'starting_from'=>$starting_time],200);
     } else {
       $lastCheckIn = new DateTime($attendanceLogAllByID[0]->check_in);
       $lastCheckOut = new DateTime($attendanceLogAllByID[0]->check_out);
@@ -125,7 +125,7 @@ class NewAttendanceController extends Controller
       'success'=>false,
       'total_checkin_per_day'=>$total_checkin,
       'last_session_duration'=> $sessiontime,
-      'starting_time'=>$starting_time,
+      'starting_time'=> (new Datetime($starting_time))->format('h:i:s a')
      ],400);
     }
   }

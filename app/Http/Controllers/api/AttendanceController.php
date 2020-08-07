@@ -81,17 +81,18 @@ class AttendanceController extends Controller
                  $attendance = new AttendanceLog();
                  $attendance->user_id=$this->user->id;
                  $attendance->attendance_date=Carbon::now();
-                 $attendance->check_in= (Carbon::Now())->format('h:i:s a');
+                $attendance->check_in= Carbon::Now()->toTimeString();
+               
 
-                 if($check_in = '10:10:00'){
+                 if(date('Hi') < 1010){
                      $attendance->status='present';
-                 }else if(!$check_in='10:10:00'){
-                     $attendance->status='late';
                  }else{
-                     $attendance->status='absent';
+                    $attendance->status='late';
                  }
                     
                  $attendance->save();
+                 $attendance->check_in=Carbon::Now()->format('h:i:s a');
+                 
                  if ($attendance) {
                      return response()->json([
                             'success'=>true,
@@ -131,7 +132,8 @@ class AttendanceController extends Controller
                  $attendance=$attendance->find($this->find_last_status()->id);
                  $attendance->user_id=$this->user->id;
                  $attendance->attendance_date=Carbon::now();
-                 $attendance->check_out=(Carbon::Now())->format('h:i:s a');
+                 $attendance->check_out= Carbon::Now()->toTimeString();
+               
 
                  $check_in = new \DateTime($attendance->check_in);
                  $check_out = new \DateTime($attendance->check_out);
@@ -141,6 +143,8 @@ class AttendanceController extends Controller
                  $attendance->duration=$timeArr;
 
                  $attendance->save();
+                 
+                 $attendance->check_out=Carbon::Now()->format('h:i:s a');
     
                  if ($attendance) {
                      return response()->json([
