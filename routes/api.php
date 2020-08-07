@@ -31,4 +31,5 @@ Route::group(['middleware' => 'jwt.auth'], function () {
 Route::post('login', 'api\LoginController@login');
 
 
- // Route::get('checkin', 'api\AttendanceController@check_in');
+ Route::get('/attendanceMonth/{user_id}', 'api\NewAttendanceController@attendanceMonth');
+ Route::get('/attendancedate/{user_id}','api\NewAttendanceController@attendancedate');

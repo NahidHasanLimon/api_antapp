@@ -21,8 +21,10 @@ class CreateAttendanceLogsTable extends Migration
             $table->time('check_in')->nullable();
             $table->time('check_out')->nullable();
             $table->char('status')->nullable();
+            $table->time('duration')->nullable();
             $table->boolean('is_approved_a')->default(0);
             $table->boolean('is_approved_s')->default(0);
+            $table->boolean('approving_superAdmin_id')->default(0);
         });
     }
 

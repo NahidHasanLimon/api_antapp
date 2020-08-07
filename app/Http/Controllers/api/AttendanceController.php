@@ -24,7 +24,7 @@ class AttendanceController extends Controller
                     ->whereDate('attendance_date',Carbon::today()->toDateString())
                     ->orderBy('id', 'DESC')
                     ->first();
-                   ;
+                   
         if (!is_null($last_row)) {
             if (!is_null($last_row->check_out) && !is_null($last_row->check_in)) {
                   return response()->json([
@@ -83,6 +83,14 @@ class AttendanceController extends Controller
                  $attendance->attendance_date=Carbon::now();
                  $attendance->check_in= Carbon::Now()->toTimeString();
 
+                 if($check_in = '10:10:00'){
+                     $attendance->status='present';
+                 }else if(!$check_in='10:10:00'){
+                     $attendance->status='late';
+                 }else{
+                     $attendance->status='absent';
+                 }
+                    
                  $attendance->save();
                  if ($attendance) {
                      return response()->json([
@@ -103,6 +111,7 @@ class AttendanceController extends Controller
                 $attendance->user_id=$this->user->id;
                 $attendance->attendance_date=Carbon::now();
                 $attendance->check_in= Carbon::Now()->toTimeString();
+
                 $attendance->save();
                 if ($attendance) {
                      return response()->json([
@@ -123,12 +132,21 @@ class AttendanceController extends Controller
                  $attendance->user_id=$this->user->id;
                  $attendance->attendance_date=Carbon::now();
                  $attendance->check_out=Carbon::Now()->toTimeString();
-                 
+
+                 $check_in = new \DateTime($attendance->check_in);
+                 $check_out = new \DateTime($attendance->check_out);
+                 $timeDiff = $check_in->diff($check_out);
+                 $timeArr= $timeDiff->h . ':' . $timeDiff->i . ':' . $timeDiff->s;
+            
+                 $attendance->duration=$timeArr;
+
                  $attendance->save();
+    
                  if ($attendance) {
                      return response()->json([
                             'success'=>true,
-                            'data'=>$attendance
+                            'data'=>$attendance,
+                            
                         ]);
                  }
                    } else{

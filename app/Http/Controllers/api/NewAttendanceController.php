@@ -11,6 +11,7 @@ use App\AttendanceLog;
 use App\Attendance;
 use Carbon\Carbon;
 use DateTime;
+
 use Input;
 class NewAttendanceController extends Controller
 {
@@ -33,46 +34,26 @@ class NewAttendanceController extends Controller
   public function GetAttendancedaily($user_id, Request $request)
   {
     try{
-       $date=$request->date;
-      $attendance_data=AttendanceLog::where('user_id',$user_id)->wheredate('attendance_date',$date)->select('attendance_date','check_in','check_out','status')->get();
+      $date=$request->date;
+ 
+      $attendances=Attendance::where('user_id',$user_id)->wheredate('attendance_date',$date)
+        ->where('is_approved_s',1)
+        ->select('check_in','check_out','duration','status')->get();
     
-      foreach($attendance_data as $attendance) {
-        $check_in = new DateTime($attendance->check_in);
-        $check_out = new DateTime($attendance->check_out);
-        $timeDiff = $check_in->diff($check_out);
-        $AttandanceArr = [
-          'inTime' => $attendance->check_in,
-          'outTime' => $attendance->check_out,
-          'duration' => $timeDiff->h . 'h:' . $timeDiff->i . 'm',
-        ];
-  
-        $timeArr[] = $timeDiff->h . ':' . $timeDiff->i . ':' . $timeDiff->s;
-        $attenDanceData[] = $AttandanceArr;
-      }
-  
-    $checkIn = $attendance_data[0]->check_in;
-    $checkOut = AttendanceLog::where('user_id',$user_id)->wheredate('attendance_date',$date)->latest('check_out')->pluck('check_out')->first();
-    $status =$attendance_data[0]->status;
-  
-    // $d1 = new  DateTime($checkIn);
-    // $d2 = new DateTime($checkOut); 
-    // $Diff = $d1->diff($d2)->h . 'h: ' . $d1->diff($d2)->i. 'm: ' . $d1->diff($d2)->s. 's:';
-    $TotalDurationSum = self::CalculateTime($timeArr);
-         return response()->json([
-  
-                              'success'=>true,
-                              'total_duration'=> $TotalDurationSum,
-                              'initialInTime'=>$checkIn,
-                              'lastOutTime'=>$checkOut,
-                              'status'=>$status,
-                              'attendance_data'=>$attenDanceData,
-                          ],200);
-    }catch(\Exception $e){
-      return response()->json(['success'=>false,'total_duration'=>null,'attendance_date'=>null ],400);
+       $attendance_data=AttendanceLog::where('user_id',$user_id)
+       ->wheredate('attendance_date',$date)
+       ->select('check_in','check_out','duration')->get();
+    
+      return response()->json(['success'=> true,'attendance'=> $attendances,'attendance_summary'=>$attendance_data],200);
+   
+    }catch (\Exception $e){
+      return response()->json(['sucess'=>false,'total_duration'=>null,'attendance_data'=>null],400);
+
     }
-  
+    
 
   }
+
 
   public function GetAttendanceMonthly($user_id,Request $request)
   {
@@ -80,8 +61,10 @@ class NewAttendanceController extends Controller
    try{
      $start_date=$request->start_date;
      $end_date=$request->end_date;
-    $attendance_data=AttendanceLog::where('user_id',$user_id)->whereBetween('attendance_date',[$start_date,$end_date])->select('attendance_date','check_in','check_out','status')->get();
    
+    $attendance_data=AttendanceLog::where('user_id',$user_id)->whereBetween('attendance_date',[$start_date, $end_date])
+      ->select('attendance_date','check_in','check_out','status')->orderBy('id','DESC')->get();
+    // dd($attendance_data);
     foreach($attendance_data as $attendance){
           $check_in= new DateTime($attendance->check_in);
           $check_out= new DateTime($attendance->check_out);
@@ -104,12 +87,15 @@ class NewAttendanceController extends Controller
    ],200);
     
    }catch (\Exception $e) {
-    return response()->json(['sucess'=>false , 'attendance_data'=>null],400);
+    return response()->json(['success'=>false , 'attendance_data'=>null],400);
 }
     
   
   }
 
+
+
+  
 
   public function Gethomepage($user_id)
   {
@@ -130,6 +116,7 @@ class NewAttendanceController extends Controller
       $timeDiff = $check_in->diff($current_time);                 
       $session_duration =  $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's';
       $starting_time =$attendance_report[0]->check_in;
+      
       return response()->json(['sucess'=>'true','total_checkin_per_day'=>$total_checkin,'last_session_duration'=>$session_duration,'starting from'=>$starting_time],200);
     } else {
       return response()->json(['sucess'=>'true','total_checkin_per_day'=>$total_checkin,'last_session_duration'=>null,'starting from' =>null],400);
@@ -142,4 +129,72 @@ class NewAttendanceController extends Controller
     $check_in=$checkButton[0]->check_in;
     return response()->json(['sucess'=>true,'check_status'=>$check_in],200);
   }
+
+
+
+
+  public function attendanceMonth($user_id, Request $request)
+  {
+
+    $start_date=$request->start_date;
+    $end_date=$request->end_date;
+
+     $attendances=  Attendance::select(array(
+      'user_id','attendance_date as Date','check_in as InTime','check_out as OutTime','duration as Duration','status as Status'))
+              ->where('user_id',$user_id)
+              ->where('is_approved_s',1)
+              ->whereBetween('attendance_date', [$start_date , $end_date])
+              ->orderBy('id', 'DESC')
+              ->get();
+
+          dd($attendances);
+     
+ }
+
+
+ public function attendancedate($user_id,Request $request)
+ {
+
+  try{
+    $date=$request->date;
+   $attendance_data=AttendanceLog::where('user_id',$user_id)->wheredate('attendance_date',$date)->select('attendance_date','check_in','check_out','status')->get();
+ 
+   foreach($attendance_data as $attendance) {
+     $check_in = new DateTime($attendance->check_in);
+     $check_out = new DateTime($attendance->check_out);
+     $timeDiff = $check_in->diff($check_out);
+     $AttandanceArr = [
+       'inTime' => $attendance->check_in,
+       'outTime' => $attendance->check_out,
+       'duration' => $timeDiff->h . 'h:' . $timeDiff->i . 'm',
+     ];
+
+     $timeArr[] = $timeDiff->h . ':' . $timeDiff->i . ':' . $timeDiff->s;
+     $attenDanceData[] = $AttandanceArr;
+   }
+
+ $checkIn = $attendance_data[0]->check_in;
+ $checkOut = AttendanceLog::where('user_id',$user_id)->wheredate('attendance_date',$date)->latest('check_out')->pluck('check_out')->first();
+ // $status =$attendance_data[0]->status;
+
+ // $d1 = new  DateTime($checkIn);
+ // $d2 = new DateTime($checkOut); 
+ // $Diff = $d1->diff($d2)->h . 'h: ' . $d1->diff($d2)->i. 'm: ' . $d1->diff($d2)->s. 's:';
+ $TotalDurationSum = self::CalculateTime($timeArr);
+      return response()->json([
+
+                           'success'=>true,
+                           'total_duration'=> $TotalDurationSum,
+                           'initialInTime'=>$checkIn,
+                           'lastOutTime'=>$checkOut,
+                           'status'=>'present',
+                           'attendance_data'=>$attenDanceData,
+                       ],200);
+ }catch(\Exception $e){
+   return response()->json(['success'=>false,'total_duration'=>null,'attendance_date'=>null ],400);
+ }
+
+
+ }
 }
+
