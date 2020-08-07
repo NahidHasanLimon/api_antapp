@@ -32,4 +32,5 @@ Route::post('login', 'api\LoginController@login');
 
 
  Route::get('/attendanceMonth/{user_id}', 'api\NewAttendanceController@attendanceMonth');
- Route::get('/attendancedate/{user_id}','api\NewAttendanceController@attendancedate');
+ 
+//  Route::get('/attendancedate/{user_id}','api\NewAttendanceController@attendancedate');

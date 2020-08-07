@@ -57,38 +57,26 @@ class NewAttendanceController extends Controller
 
   public function GetAttendanceMonthly($user_id,Request $request)
   {
+    try{
+      $start_date=$request->start_date;
+      $end_date=$request->end_date;
+  
+       $attendance_data=  Attendance::select(array(
+        'attendance_date as Date','check_in as InTime','check_out as OutTime','duration as Duration','status as Status'))
+                ->where('user_id',$user_id)
+                ->where('is_approved_s',1)
+                ->whereBetween('attendance_date', [$start_date.' 00:00:00',$end_date.' 23:59:59'])
+                ->orderBy('id', 'DESC')
+                ->get();
+  
+         return response()->json(['success'=>true,'attendance'=>$attendance_data],200);
 
-   try{
-     $start_date=$request->start_date;
-     $end_date=$request->end_date;
-   
-    $attendance_data=AttendanceLog::where('user_id',$user_id)->whereBetween('attendance_date',[$start_date, $end_date])
-      ->select('attendance_date','check_in','check_out','status')->orderBy('id','DESC')->get();
-    // dd($attendance_data);
-    foreach($attendance_data as $attendance){
-          $check_in= new DateTime($attendance->check_in);
-          $check_out= new DateTime($attendance->check_out);
-          $timeDiff = $check_in->diff($check_out);
-          $AttandanceArr = [
-           'attendance_date'=>$attendance->attendance_date,
-           'inTime' => $attendance->check_in,
-           'outTime' => $attendance->check_out,
-           'status' =>$attendance->status,
-           'duration' => $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's' ,
-         ];
-   
-         $timeArr[] = $timeDiff->h . ':' . $timeDiff->i . ':' . $timeDiff->s;
-         $attenDanceData[] = $AttandanceArr;
+    }catch (\Exception $e){
+       return response()->json(['success'=>false,'attendance_data'=>null],400);   
+ 
     }
-     return response()->json([
-
-       'success'=>true,
-       'attendance_data'=>$attenDanceData,
-   ],200);
-    
-   }catch (\Exception $e) {
-    return response()->json(['success'=>false , 'attendance_data'=>null],400);
-}
+   
+   
     
   
   }
@@ -133,21 +121,49 @@ class NewAttendanceController extends Controller
 
 
 
+
+
+
+
+
+
+
+
+
+
   public function attendanceMonth($user_id, Request $request)
   {
-
-    $start_date=$request->start_date;
-    $end_date=$request->end_date;
-
-     $attendances=  Attendance::select(array(
-      'user_id','attendance_date as Date','check_in as InTime','check_out as OutTime','duration as Duration','status as Status'))
-              ->where('user_id',$user_id)
-              ->where('is_approved_s',1)
-              ->whereBetween('attendance_date', [$start_date , $end_date])
-              ->orderBy('id', 'DESC')
-              ->get();
-
-          dd($attendances);
+ try{
+        $start_date=$request->start_date;
+        $end_date=$request->end_date;
+      
+       $attendance_data=AttendanceLog::where('user_id',$user_id)->whereBetween('attendance_date',[$start_date, $end_date])
+         ->select('attendance_date','check_in','check_out','status')->orderBy('id','DESC')->get();
+       // dd($attendance_data);
+       foreach($attendance_data as $attendance){
+             $check_in= new DateTime($attendance->check_in);
+             $check_out= new DateTime($attendance->check_out);
+             $timeDiff = $check_in->diff($check_out);
+             $AttandanceArr = [
+              'attendance_date'=>$attendance->attendance_date,
+              'inTime' => $attendance->check_in,
+              'outTime' => $attendance->check_out,
+              'status' =>$attendance->status,
+              'duration' => $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's' ,
+            ];
+      
+            $timeArr[] = $timeDiff->h . ':' . $timeDiff->i . ':' . $timeDiff->s;
+            $attenDanceData[] = $AttandanceArr;
+       }
+        return response()->json([
+   
+          'success'=>true,
+          'attendance_data'=>$attenDanceData,
+      ],200);
+       
+      }catch (\Exception $e) {
+       return response()->json(['success'=>false , 'attendance_data'=>null],400);
+   }
      
  }
 
