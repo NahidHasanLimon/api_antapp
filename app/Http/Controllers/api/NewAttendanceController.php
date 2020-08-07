@@ -87,16 +87,20 @@ class NewAttendanceController extends Controller
 
   public function Gethomepage($user_id)
   {
-     $total_checkin=AttendanceLog::where('user_id',$user_id)
-     ->whereDate('attendance_date',today())->count('check_in');
+    $attendanceLogAllByID = AttendanceLog::where('user_id',$user_id)
+                          ->whereDate('attendance_date',today())
+                          ->orderBy('id', 'DESC')
+                          ->get();
+                 
+   $starting_time=AttendanceLog::where('user_id',$user_id)
+                    ->whereDate('attendance_date',today())
+                    ->latest('check_in')->pluck('check_in')->first();
+                     
+     $total_checkin = $attendanceLogAllByID->count('check_in');
 
      $attendance_report = AttendanceLog::where('user_id',$user_id)
                     ->whereDate('attendance_date',today())
-                    ->where('check_out', NULL)->select('check_in')->get();
-
-    // $starting_time= AttendanceLog::where('user_id',$user_id)
-    // ->whereDate('attendance_date',today())
-    // ->latest('check_in')->first();  
+                    ->where('check_out', NULL)->select('check_in')->get(); 
 
     if (count($attendance_report) > 0) {
       $check_in= new DateTime($attendance_report[0]->check_in);
@@ -105,9 +109,28 @@ class NewAttendanceController extends Controller
       $session_duration =  $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's';
       $starting_time =$attendance_report[0]->check_in;
       
-      return response()->json(['sucess'=>'true','total_checkin_per_day'=>$total_checkin,'last_session_duration'=>$session_duration,'starting from'=>$starting_time],200);
+      return response()->json(['success'=>'true',
+      'total_checkin_per_day'=>$total_checkin,
+      'last_session_duration'=>$session_duration,
+      'starting from'=>$starting_time],200);
     } else {
-      return response()->json(['sucess'=>'true','total_checkin_per_day'=>$total_checkin,'last_session_duration'=>null,'starting from' =>null],400);
+      // $lastCheckIn = strtotime($attendanceLogAllByID[0]->check_in);
+      // $lastCheckOut = strtotime($attendanceLogAllByID[0]->check_out);
+      // $sessionTime = $lastCheckOut - $lastCheckIn;
+      $lastCheckIn = new DateTime($attendanceLogAllByID[0]->check_in);
+     
+      $lastCheckOut = new DateTime($attendanceLogAllByID[0]->check_out);
+      $timeDiff =  $lastCheckIn->diff( $lastCheckOut);
+      $sessiontime= $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's';
+     
+      $lastCheckIn=$attendanceLogAllByID[0]->Check_in;
+    
+      return response()->json([
+      'success'=>false,
+      'total_checkin_per_day'=>$total_checkin,
+      'last_session_duration'=> $sessiontime,
+      'starting_time'=>$starting_time,
+     ],400);
     }
   }
 
