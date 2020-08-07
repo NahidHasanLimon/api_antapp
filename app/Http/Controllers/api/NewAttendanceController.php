@@ -114,11 +114,7 @@ class NewAttendanceController extends Controller
       'last_session_duration'=>$session_duration,
       'starting from'=>$starting_time],200);
     } else {
-      // $lastCheckIn = strtotime($attendanceLogAllByID[0]->check_in);
-      // $lastCheckOut = strtotime($attendanceLogAllByID[0]->check_out);
-      // $sessionTime = $lastCheckOut - $lastCheckIn;
       $lastCheckIn = new DateTime($attendanceLogAllByID[0]->check_in);
-     
       $lastCheckOut = new DateTime($attendanceLogAllByID[0]->check_out);
       $timeDiff =  $lastCheckIn->diff( $lastCheckOut);
       $sessiontime= $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's';
