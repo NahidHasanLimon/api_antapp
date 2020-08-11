@@ -43,6 +43,10 @@ class NewAttendanceController extends Controller
        $attendance_data=AttendanceLog::where('user_id',$user_id)
        ->wheredate('attendance_date',$date)
        ->select('check_in','check_out','duration')->get();
+
+      // $attendance_data->check_in= (new Datetime($attendance_data[0]->check_in))->format('h:i:s a');
+      //  $attendance_data->check_out=(new Datetime($attendance_data[0]->check_out))->format('h:i:s a');
+      
     
       return response()->json(['success'=> true,'attendance'=> $attendances,'attendance_summary'=>$attendance_data],200);
    
@@ -68,6 +72,8 @@ class NewAttendanceController extends Controller
                 ->whereBetween('attendance_date', [$start_date.' 00:00:00',$end_date.' 23:59:59'])
                 ->orderBy('id', 'DESC')
                 ->get();
+
+      
   
          return response()->json(['success'=>true,'attendance'=>$attendance_data],200);
 
@@ -113,7 +119,7 @@ class NewAttendanceController extends Controller
       'total_checkin_per_day'=>$total_checkin,
       'last_session_duration'=>$session_duration,
       'starting_from'=>$starting_time],200);
-    } else {
+    } else if(count($attendanceLogAllByID) > 0) {
       $lastCheckIn = new DateTime($attendanceLogAllByID[0]->check_in);
       $lastCheckOut = new DateTime($attendanceLogAllByID[0]->check_out);
       $timeDiff =  $lastCheckIn->diff( $lastCheckOut);
@@ -126,7 +132,15 @@ class NewAttendanceController extends Controller
       'total_checkin_per_day'=>$total_checkin,
       'last_session_duration'=> $sessiontime,
       'starting_time'=> (new Datetime($starting_time))->format('h:i:s a')
-     ],400);
+     ],200);
+  
+    }else{
+      return response()->json([
+        'success'=>false,
+        'total_checkin_per_day'=>'null',
+        'last_session_duration'=> 'null',
+        'starting_time'=> 'null'
+       ],400);
     }
   }
 
