@@ -115,7 +115,7 @@ class NewAttendanceController extends Controller
       $session_duration =  $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's';
       $starting_time = (new Datetime($attendance_report[0]->check_in))->format('h:i:s a');
       
-      return response()->json(['success'=>'true',
+      return response()->json(['success'=>true,
       'total_checkin_per_day'=>$total_checkin,
       'last_session_duration'=>$session_duration,
       'starting_from'=>$starting_time],200);
@@ -124,9 +124,7 @@ class NewAttendanceController extends Controller
       $lastCheckOut = new DateTime($attendanceLogAllByID[0]->check_out);
       $timeDiff =  $lastCheckIn->diff( $lastCheckOut);
       $sessiontime= $timeDiff->h . 'h:' . $timeDiff->i . 'm:' .$timeDiff->s. 's';
-     
       $lastCheckIn=$attendanceLogAllByID[0]->Check_in;
-    
       return response()->json([
       'success'=>false,
       'total_checkin_per_day'=>$total_checkin,
